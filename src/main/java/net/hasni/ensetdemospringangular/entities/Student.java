@@ -19,5 +19,7 @@ public class Student {
     @Column(name = "program_id", nullable = false)
     private String programId;
     private String photo;
+    @OneToOne  @JoinColumn( name="id_student_informations", nullable=false )
+    private StudentInformations studentInformations;
 
 }

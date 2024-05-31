@@ -2,13 +2,12 @@ package net.hasni.ensetdemospringangular;
 
 import net.hasni.ensetdemospringangular.entities.Payment;
 import net.hasni.ensetdemospringangular.entities.Student;
-import net.hasni.ensetdemospringangular.entities.UtilisateurLogin;
+import net.hasni.ensetdemospringangular.entities.StudentInformations;
 import net.hasni.ensetdemospringangular.enums.PaymentStatus;
 import net.hasni.ensetdemospringangular.enums.PaymentType;
-import net.hasni.ensetdemospringangular.enums.RoleType;
 import net.hasni.ensetdemospringangular.repository.PaymentRepository;
+import net.hasni.ensetdemospringangular.repository.StudentInformationsRepository;
 import net.hasni.ensetdemospringangular.repository.StudentRepository;
-import net.hasni.ensetdemospringangular.repository.UtilisateurLoginRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,68 +29,8 @@ public class EnsetDemoSpringAngularApplication {
 	}
 
 	@Bean
-	CommandLineRunner commandLineRunner(StudentRepository studentRepository, PaymentRepository paymentRepository,
-										UtilisateurLoginRepository utilisateurLoginRepository){
-		return args -> {
-
-            /*List<UtilisateurLogin> userList=List.of(
-					UtilisateurLogin.builder()
-							.username("badis")
-							.email("badis@gmail.com")
-							.role(RoleType.ADMIN)
-							.password("1234")
-							.build(),
-					UtilisateurLogin.builder()
-							.username("hajer")
-							.email("hajer@gmail.com")
-							.role(RoleType.USER)
-							.password("1234")
-							.build()
-
-			);
-			utilisateurLoginRepository.saveAll(userList);*/
-
-		/*	List<Student> studentList=List.of(
-					Student.builder()
-							.firstName("Hassan")
-							.lastName("Elhoumi")
-							.code("X1")
-							.programId("SIDG")
-							.build(),
-					Student.builder()
-							.firstName("Mohamed")
-							.lastName("Elhannaoui")
-							.code("X2")
-							.programId("HJFI")
-							.build()
-
-			);
-			studentRepository.saveAll(studentList);
-
-
-			PaymentType[] paymentType = PaymentType.values();
-			Random random = new Random();
-			// Pour chaque étudient, on va ajouter 10 payment par exemple.
-			studentRepository.findAll().forEach(st -> {
-				for(int i =0; i<10; i++) {
-					int index = random.nextInt(paymentType.length);
-					Payment payment = Payment.builder()
-							.amount(1000+(int)(Math.random()*2000))
-							.type(paymentType[index])
-							.status(PaymentStatus.CREATED)
-							.date(LocalDate.now())
-							.student(st)
-							.build();
-					paymentRepository.save(payment);
-
-				}
-			});*/
-
-		};
-	}
-
-	@Bean
-	CommandLineRunner commandLineRunnerUser(JdbcUserDetailsManager jdbcUserDetailsManager, StudentRepository studentRepository, PaymentRepository paymentRepository) {
+	CommandLineRunner commandLineRunnerUser(JdbcUserDetailsManager jdbcUserDetailsManager, StudentRepository studentRepository, PaymentRepository paymentRepository,
+											StudentInformationsRepository studentInformationsRepository) {
 
 		PasswordEncoder passwordEncoder = passwordEncoder1();
 
@@ -112,18 +51,39 @@ public class EnsetDemoSpringAngularApplication {
 
 			// partie Data
 
+			StudentInformations infosSt1 = StudentInformations.builder()
+					.address("34 av du générale leclerc")
+					.city("Plessis-Robinson")
+					.email("hassan@gmail.com")
+					.phoneNumber("0658741412")
+					.classe("5")
+					.build();
+			studentInformationsRepository.save(infosSt1);
+
+
+			StudentInformations infosSt2 = StudentInformations.builder()
+					.address("22 av du tartar")
+					.city("cChatenay Malabry")
+					.email("mohamed@gmail.com")
+					.phoneNumber("0685411215")
+					.classe("6")
+					.build();
+			studentInformationsRepository.save(infosSt2);
+
 			List<Student> studentList=List.of(
 					Student.builder()
 							.firstName("Hassan")
 							.lastName("Elhoumi")
 							.code("X1")
 							.programId("SIDG")
+							.studentInformations(infosSt1)
 							.build(),
 					Student.builder()
 							.firstName("Mohamed")
 							.lastName("Elhannaoui")
 							.code("X2")
 							.programId("HJFI")
+							.studentInformations(infosSt2)
 							.build()
 
 			);
