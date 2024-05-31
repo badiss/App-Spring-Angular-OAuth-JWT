@@ -1,0 +1,146 @@
+Spring Angular - Backend with Spring Boot
+
+- On a deux entités: Students et Payment, et on a une relation Many-To-One
+
+A faire sur le projet:
+	- Developpement partie back ++
+	- Developpement partie Front ++
+	- test unitaire
+	- Sécurité du partie back JWT ++
+	- Sécurité du partie back JWT ++
+	- Dockerizer partie back et front ++
+	- Automatiser le projet: CICD
+	- Ajouter d'autres tables (avec des relations entre les tables) et d'autre fonctionnalité back et front
+	- Mettre le projet sous git
+
+
+Les liens à tester:
+
+	- http://localhost:8021/swagger-ui/index.html   --> swagger
+	- http://localhost:8021/api/listStudent  --> list Students
+	- http://localhost:8021/h2-console  --> Base de données H2
+
+Pour le projet Front: on va utiliser angular 17, mais pas standalen, donc on a des modules et des composants,
+Aussi dans le projet Front on va utiliser angular Matérial, et pour l'installé: ng add @angular/material
+Les composants créer dans notre application Front
+	- admin-Template
+	- home
+	- profile
+	- load-students
+	- load-payments
+	- login
+	- students
+	- payments
+	- dashbord
+
+Pour les PDF, on a installé ng2 pdf viewer : npm install ng2-pdf-viewer 
+
+Protéger les routes par les rôles, cad s'il est connecté admin alors il peut accéder a des routes et s'il est connecté comme user alors il accéder seulement a d'autre routes et non pas tous.
+	- http://localhost:4200/admin/loadStudents et http://localhost:4200/admin/loadPayments : seulement pour admin
+Pour cela on créer un autre guard pour protèger ces deux liens
+
+
+Test après sécurity:
+
+1/ gmail
+
+-	Checreher google cloud console : et créer un nouveau projet (projet-Back-Front).
+-	Entrer dans le projet et chercher API et Service : j’ai besoin d’avoir client ID et client Secret  a gauche y a le btn identifiant  créer des identifiant (ID Client OAuth)  choisir externe et créer
+-	Remplir les informations du projet (nom du projet et adresse mail) Revenir sur le btn a gauche identifiant, et btn créer des identifiant (Créer un ID client OAuth)
+-	Choisir le type d’application (application Web)
+-	URI de rediction autorisés : http://localhost:4200 : c’est l’url de redirection
+-	Après la création, il va génerer ID Client, Code secret du client
+-	Après dans le projet Back, on active la sécurité (la dépendance dans le POM), et maintenant quand on lance un url pour le back par exemple : http://localhost:8021/login/oauth2/code/google , alors il va faire une redirection d’authentification vers google
+-	Après dans le fichier application.properties, on ajoute une configuration (voir code), et aussi une nouvelle classe qui contient la configuration
+-	Après si je lance un url vers le back alors, y a une redirection vers le gmail pour faire l’authentification
+-	Dans le controleur, on a créer un nouveau api pour l’authentification avec l’objet : Authentication (objet de spring sécurity qui contient la session d’un user connecté ; tous les infos de user)
+-	http://localhost:8021/logout : permet de faire le Logout 
+	L’idée générale de l’authentification with google : qand on tape l’url alors y a une redirection vers google, après on fait l’authentification with google et du coup google envoie un Token (JWT) vers le client pour autoriser le user a conecté sur l’application
+http://localhost:8021/api/auth : y a tous les infs et même le Token générer par le google
+
+
+2/ Keyclock
+
+On utilise l’authentification with Keycloak pour sécuriser notre application :
+-	Download Keycloak, et pour démarrer le keycloak, il faut lancer la commande :  kc.bat start-dev   (sous bin)  avec la base de données H2
+-	Accèder à l’interface : localhodt :8080 et créer un admin (admin/admin)
+-	Create realm : sdia-realm
+-	Créer un client : dans client Id : projet-back-front
+-	Cocher Client authentication : pour utiliser après client ID avec client Secret
+-	Dans Valid redirect URIs : ajouter l’url de redirection http://localhost:8021/*
+-	Créer les roles : a droite realm roles  create rôle (j’ai créer deux roles : USER et ADMIN)
+-	Créer des users : 
+o	user1,  user1@gmail.com,HASNI, BADIS
+o	Credentials (mdp) : 1234
+
+o	User2,  user2@gmail.com,HASNI, FIRAS
+o	Credentials (mdp) : 12345
+-	Après, il faut assigner les roles vers les user créer : dans users  click sur le user1 role mapping  Assign role  user (et pour le user2  user et admin)
+Maintenant, on peut utiliser postman pour récupérer le token, alors on peut avoir l’url dans realm Setting  OpenID Endpoint Configuration
+http://localhost:8080/realms/sdia-realm/protocol/openid-connect/token
+(voir  video)
+
+Résumé : Amintenant si je tape un url vers le back par exemple : http://localhost:8021/api/listStudent   il va demander une authentification soit par google, soit par Keyclock
+ 
+Remarque : 
+-	J’ai ajouté sur le service de get list payment cette annotation : cad il est authoriser que pour les user avec role ADMIN et comme on a le user2 qui a les deux role user et admin 	alors ya que user2 qui peut voir cette api
+	@PreAuthorize("hasAuthority('ADMIN')")
+
+	Mais, le JWT récupérer à partir de keyclock ne contient pas les role pour autoriser le user2, alors il faut ajouter cette infos dans le JWE,
+	Alors il faut allez dans clientsprojet-back-front client scopes  projet-back-front-dedicated  add predefined mapper  chercher eole realm add  après cliquer sur realm 	role  coché add to id token
+	Maintenant pour vérifier on récupére le token a partir de http://localhost:8021/api/auth (chercher id Token), et mettre dans jwt.io, on va trouver ca "realm_access": { "roles": 	[ "default-roles-sdia-realm", "offline_access", "uma_authorization", "ADMIN", "USER" ] },
+
+i- http://localhost:8021/logout
+ii- http://localhost:8021/api/auth --> je conecte sur keyclock avec user1 (qui est juste USER), je peut voir les infos 
+iii- http://localhost:8021/api/listStudent  --> je peux consulter car autoriser pour tous
+4i- http://localhost:8021/api/listPayment  --> je peux pas et redirection vers page notAutorized
+5i- http://localhost:8021/logout
+6i- http://localhost:8021/api/auth --> je connecte sur keyclocl avec user2 (qui est le role ADMIN et USER), voir les infos de jwt et les autorisation générer par le provider
+7i- http://localhost:8021/api/listStudent --> je peux consulter car autoriser pour tous
+8i- http://localhost:8021/api/listPayment -->je peux consulter car je suis ADMIN (user2)
+
+
+
+
+Remarque: 
+
+- La 1ére partie: j'ai travailler avec thymleaf, et l sécurité de la partie back avec les provider: gmail et keyclock
+	- pour cela on a la config dans le fichier SecurityConfigThymleaf.java et aussi dans le fichier properties.xml
+	- pour lancer le projet, il est nécessaire de lancer avant keycloak
+
+- La 2éme partie: j'ai travailler sur la sécurity du projet avec JWT 
+
+--> Finalement, j'ai mets en commentaire la sécurité par gmail et Keyclock et j'ai concentré par la sécurité with JWT, alors dans ce projet on n'a qye la sécurité par JWT
+
+
+Dockerisation du projet:
+
+A- Utiliser dockerFile avec les commande pour créer et démarrer application
+	- on a créer un file Dockerfile
+	- on a générer un fichier .jar de notre module, avec mvn clean package -DskipTests (clean pour clener le fichier target): le fichier .jar on va l'utiliser dans le Dockerfile
+		COPY target/*.jar app.jar  --> cette ligne pour copier les fichiers .jar sous target dans un fichier app.jar qu'on va exécuter après
+                ENTRYPOINT ["java", "-jar", "app.jar"]  -> cette ligne dans Dockerfile, pour dire à docker d'exécuter le fichier .jar (cad démarrer notre appli)
+	- création de l'image avec docker build . -t enset-demo-spring-angulr:v1    (v1 c'est le tag, cad la version), après si je lance docker images, alors je trouve la nouevlle image
+	- créer un conteneur de cette image avec: docker run -p 8021:8021 enset-demo-spring-angulr:v1  (il faut mapper les port car le 8761 est le port en local de module et le 2éme 8021          
+          c'est notre choix, pour qu'on arrive à accéder au application à partir de l'exterieur). --> l'application est démarrer et pour le tester:
+          http://192.168.76.3:8021, ou bien on peut taper dans la VM: localhost:8761  (car docker Engine est sur cette VM)
+	- on peut faire les tests à partir de Postman
+		- http://192.168.76.3:8021/api/login?username=admin&password=1234 : pour générer le token
+		- http://192.168.76.3:8021/api/listStudent  : pour récupérer la liste des students
+
+	- Côté Front aussi, j'ai ajouté le fichier dockerfile
+	- j'ai changé dans le fichier environnement, l'adresse pour appelé les apis dans le conteneur: backendHost : "http://192.168.76.3:8021/api",
+
+B-Utiliser le fichier docker-compose: on va automatiser l'application
+	Maintenant au lieu d'utiliser les commandes: docker build et docker run pour créer image et démarrer un conteneur, on va automatiser tous ca à travers docker compose
+	- Cérer le fichier Dockerfile dans le projet 
+	- créer le fichier docker-compose.yml dans le racine de l'application
+	- Après on lance docker compose up : pour démarer tous les services qui sont dans le fichier .yml
+
+
+Remarque: J'aurais la même erreur que l'autre projet, alors pour débloquer la situation:
+	- J'ai démarrer la partie back sans docker-compose, cad j'ai lancer la commande pour créer l'image et aussi deuxième commande pour lancer créer le conteneur.
+	- Pour la partie Back, j'ai utiliser docker-compose: docker compose up -d --build
+	- Après je peux lancer l'application avec :  http://192.168.76.3:4200
+
+
