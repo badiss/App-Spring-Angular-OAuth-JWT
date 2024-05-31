@@ -1,0 +1,17 @@
+version: '3.4'
+services:
+  enset-demo-spring-angular:
+    build: ./
+    container_name: enset-demo-spring-angular
+    ports:
+      - '8021:8021'
+    expose:
+      - '8021'
+
+  front-end-angular:
+    build: ./FrontEnd_Angular
+    container_name: front-end-angular
+    ports:
+      - '80:80'
+    expose:
+      - '80'
