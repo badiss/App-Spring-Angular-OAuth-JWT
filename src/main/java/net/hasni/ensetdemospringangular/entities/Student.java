@@ -1,7 +1,11 @@
 package net.hasni.ensetdemospringangular.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor @NoArgsConstructor @Getter @Setter @ToString @Builder
@@ -21,5 +25,11 @@ public class Student {
     private String photo;
     @OneToOne  @JoinColumn( name="id_student_informations", nullable=false )
     private StudentInformations studentInformations;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable( name = "Student_Cours_Association",
+            joinColumns = @JoinColumn( name = "student_id" ),
+            inverseJoinColumns = @JoinColumn( name = "id_cours" ) )
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private List<Cours> cours = new ArrayList<>();
 
 }

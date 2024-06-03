@@ -1,13 +1,9 @@
 package net.hasni.ensetdemospringangular;
 
-import net.hasni.ensetdemospringangular.entities.Payment;
-import net.hasni.ensetdemospringangular.entities.Student;
-import net.hasni.ensetdemospringangular.entities.StudentInformations;
+import net.hasni.ensetdemospringangular.entities.*;
 import net.hasni.ensetdemospringangular.enums.PaymentStatus;
 import net.hasni.ensetdemospringangular.enums.PaymentType;
-import net.hasni.ensetdemospringangular.repository.PaymentRepository;
-import net.hasni.ensetdemospringangular.repository.StudentInformationsRepository;
-import net.hasni.ensetdemospringangular.repository.StudentRepository;
+import net.hasni.ensetdemospringangular.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,7 +26,8 @@ public class EnsetDemoSpringAngularApplication {
 
 	@Bean
 	CommandLineRunner commandLineRunnerUser(JdbcUserDetailsManager jdbcUserDetailsManager, StudentRepository studentRepository, PaymentRepository paymentRepository,
-											StudentInformationsRepository studentInformationsRepository) {
+											StudentInformationsRepository studentInformationsRepository, CoursRepository coursRepository
+											) {
 
 		PasswordEncoder passwordEncoder = passwordEncoder1();
 
@@ -50,6 +47,30 @@ public class EnsetDemoSpringAngularApplication {
 
 
 			// partie Data
+
+			Cours cour1 = Cours.builder()
+					.titre("Francais")
+					.date("22/05/2024")
+					.heure("10h")
+					.obligatoire(true)
+					.build();
+			coursRepository.save(cour1);
+
+			Cours cour2 = Cours.builder()
+					.titre("Anglais")
+					.date("18/06/2024")
+					.heure("15h")
+					.obligatoire(false)
+					.build();
+			coursRepository.save(cour2);
+
+			Cours cour3 = Cours.builder()
+					.titre("Informatique")
+					.date("16/06/2024")
+					.heure("17h")
+					.obligatoire(true)
+					.build();
+			coursRepository.save(cour3);
 
 			StudentInformations infosSt1 = StudentInformations.builder()
 					.address("34 av du générale leclerc")
@@ -77,11 +98,13 @@ public class EnsetDemoSpringAngularApplication {
 							.code("X1")
 							.programId("SIDG")
 							.studentInformations(infosSt1)
+							.cours(List.of(cour1, cour2))
 							.build(),
 					Student.builder()
 							.firstName("Mohamed")
 							.lastName("Elhannaoui")
 							.code("X2")
+							.cours(List.of(cour2, cour3))
 							.programId("HJFI")
 							.studentInformations(infosSt2)
 							.build()
@@ -107,6 +130,9 @@ public class EnsetDemoSpringAngularApplication {
 
 				}
 			});
+
+
+
 
 		};
 	}

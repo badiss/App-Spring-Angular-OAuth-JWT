@@ -1,40 +1,25 @@
 package net.hasni.ensetdemospringangular.web;
 
 import net.hasni.ensetdemospringangular.dto.PaymentDTO;
+import net.hasni.ensetdemospringangular.entities.Cours;
 import net.hasni.ensetdemospringangular.entities.Payment;
 import net.hasni.ensetdemospringangular.entities.Student;
 import net.hasni.ensetdemospringangular.enums.PaymentStatus;
 import net.hasni.ensetdemospringangular.enums.PaymentType;
 import net.hasni.ensetdemospringangular.repository.PaymentRepository;
 import net.hasni.ensetdemospringangular.repository.StudentRepository;
-import net.hasni.ensetdemospringangular.services.LoginService;
-import net.hasni.ensetdemospringangular.services.PaymentService;
+import net.hasni.ensetdemospringangular.servicesImpl.CoursServiceImpl;
+import net.hasni.ensetdemospringangular.servicesImpl.LoginServiceImpl;
+import net.hasni.ensetdemospringangular.servicesImpl.PaymentServiceImpl;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -43,15 +28,19 @@ public class StudentPaymentRestController {
 
     private PaymentRepository paymentRepository;
     private StudentRepository studentRepository;
-    private PaymentService paymentService;
-    private LoginService loginService;
+    private PaymentServiceImpl paymentService;
+    private LoginServiceImpl loginService;
+
+    private CoursServiceImpl coursService;
 
     public StudentPaymentRestController(PaymentRepository paymentRepository, StudentRepository studentRepository,
-                                        PaymentService paymentService, LoginService loginService) {
+                                        PaymentServiceImpl paymentService, LoginServiceImpl loginService,
+                                        CoursServiceImpl coursService) {
         this.paymentRepository = paymentRepository;
         this.studentRepository = studentRepository;
         this.paymentService = paymentService;
         this.loginService = loginService;
+        this.coursService = coursService;
 
     }
 
@@ -215,5 +204,19 @@ public class StudentPaymentRestController {
     @GetMapping(path = "/notAutorized")
     public String notAutorized() {
         return "notAutorized";
+    }
+
+
+
+    // Les apis des cours
+
+    /**
+     * Consulter liste des cours.
+     * @return
+     */
+    @GetMapping(path="/listCours")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public List<Cours> listCours() {
+        return coursService.listCours();
     }
 }
