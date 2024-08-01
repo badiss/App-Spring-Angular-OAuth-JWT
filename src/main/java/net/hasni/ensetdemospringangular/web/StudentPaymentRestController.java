@@ -1,5 +1,6 @@
 package net.hasni.ensetdemospringangular.web;
 
+import net.hasni.ensetdemospringangular.dto.CoursDTO;
 import net.hasni.ensetdemospringangular.dto.PaymentDTO;
 import net.hasni.ensetdemospringangular.entities.Cours;
 import net.hasni.ensetdemospringangular.entities.Payment;
@@ -218,5 +219,11 @@ public class StudentPaymentRestController {
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public List<Cours> listCours() {
         return coursService.listCours();
+    }
+
+    @PostMapping(path ="/addCour")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public Cours saveCour(CoursDTO coursDTO) throws IOException {
+        return coursService.saveCour(coursDTO);
     }
 }
