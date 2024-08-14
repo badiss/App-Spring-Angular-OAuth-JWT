@@ -66,6 +66,7 @@ public class SecurityConfigJWTAngular {
                 .csrf(csrf->csrf.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(ar->ar.requestMatchers("/api/login/**",
+                        "/api/resetPasswordUser/**",
                         "/swagger-ui.html",
                         "/swagger-ui/**",
                         "/swagger-resources/**",

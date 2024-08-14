@@ -1,17 +1,15 @@
 package net.hasni.ensetdemospringangular.web;
 
+import net.hasni.ensetdemospringangular.dto.AffectationStudentCoursDTO;
 import net.hasni.ensetdemospringangular.dto.CoursDTO;
 import net.hasni.ensetdemospringangular.dto.PaymentDTO;
-import net.hasni.ensetdemospringangular.entities.Cours;
-import net.hasni.ensetdemospringangular.entities.Payment;
-import net.hasni.ensetdemospringangular.entities.Student;
+import net.hasni.ensetdemospringangular.dto.ResetPasswordDTO;
+import net.hasni.ensetdemospringangular.entities.*;
 import net.hasni.ensetdemospringangular.enums.PaymentStatus;
 import net.hasni.ensetdemospringangular.enums.PaymentType;
 import net.hasni.ensetdemospringangular.repository.PaymentRepository;
-import net.hasni.ensetdemospringangular.repository.StudentRepository;
-import net.hasni.ensetdemospringangular.servicesImpl.CoursServiceImpl;
-import net.hasni.ensetdemospringangular.servicesImpl.LoginServiceImpl;
-import net.hasni.ensetdemospringangular.servicesImpl.PaymentServiceImpl;
+import net.hasni.ensetdemospringangular.servicesImpl.*;
+import net.hasni.ensetdemospringangular.util.UserCode;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,20 +26,24 @@ import java.util.Map;
 public class StudentPaymentRestController {
 
     private PaymentRepository paymentRepository;
-    private StudentRepository studentRepository;
+    private StudentServiceImpl studentService;
     private PaymentServiceImpl paymentService;
     private LoginServiceImpl loginService;
-
     private CoursServiceImpl coursService;
+    private UserServiceImpl userService;
+    private EmailServiceImpl emailService;
 
-    public StudentPaymentRestController(PaymentRepository paymentRepository, StudentRepository studentRepository,
+    public StudentPaymentRestController(PaymentRepository paymentRepository, StudentServiceImpl studentService,
                                         PaymentServiceImpl paymentService, LoginServiceImpl loginService,
-                                        CoursServiceImpl coursService) {
+                                        CoursServiceImpl coursService, UserServiceImpl userService,
+                                        EmailServiceImpl emailService) {
         this.paymentRepository = paymentRepository;
-        this.studentRepository = studentRepository;
+        this.studentService = studentService;
         this.paymentService = paymentService;
         this.loginService = loginService;
         this.coursService = coursService;
+        this.userService = userService;
+        this.emailService = emailService;
 
     }
 
@@ -92,7 +94,7 @@ public class StudentPaymentRestController {
     @GetMapping(path="/listStudent")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public List<Student> listStudent() {
-        return studentRepository.findAll();
+        return studentService.listStudents();
     }
 
     /**
@@ -112,16 +114,16 @@ public class StudentPaymentRestController {
     @GetMapping(path="/student/{code}")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public Student getStudentByCode (@PathVariable String code) {
-        return studentRepository.findByCode(code);
+        return studentService.findByCode(code);
     }
 
     /**
      * Consulter les étudiants par filière.
      */
-    @GetMapping(path="/student/{programId}")
+    @GetMapping(path="/studentPg/{programId}")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     List<Student> getStudentsByProgramID (@PathVariable String programId) {
-        return studentRepository.findByProgramId(programId);
+        return studentService.findByProgramId(programId);
     }
 
     /**
@@ -152,7 +154,6 @@ public class StudentPaymentRestController {
     @PutMapping(path ="/updatePayment/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public Payment updatePayment(@RequestBody PaymentDTO paymentDTO, @PathVariable Long id) throws IOException {
-        System.out.println("****************");
         return paymentService.updatePayment(paymentDTO, id);
     }
 
@@ -225,5 +226,25 @@ public class StudentPaymentRestController {
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public Cours saveCour(CoursDTO coursDTO) throws IOException {
         return coursService.saveCour(coursDTO);
+    }
+
+    @PostMapping(path ="/resetPasswordUser", consumes = { "application/json" })
+    public boolean resetPasswordUser (@RequestBody ResetPasswordDTO resetPasswordDTO) {
+        Users user = userService.ifUserExists(resetPasswordDTO.getUser());
+        if (user != null) {
+            Mail mail = new Mail(resetPasswordDTO.getEmail(), UserCode.getCode());
+            emailService.sendPasswordByCode(mail);
+            System.out.println("=============== "+UserCode.getCode());
+            userService.updateUserPassword(user, UserCode.getCode());
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @PostMapping(path ="/affectation", consumes = { "application/json" })
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public @ResponseBody Student affecterStudentCours (@RequestBody AffectationStudentCoursDTO affectationStudentCoursDTO) {
+        return studentService.affectation(affectationStudentCoursDTO.getCoursIds(), affectationStudentCoursDTO.getStudentId());
     }
 }

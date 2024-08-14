@@ -7,6 +7,7 @@ import java.util.List;
 
 @AllArgsConstructor @NoArgsConstructor @Getter @Setter @ToString @Builder
 public class CoursDTO {
+    private Integer idCours;
     private String titre;
     private String date;
     private String heure;

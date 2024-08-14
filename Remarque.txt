@@ -10,8 +10,9 @@ A faire sur le projet:
 	- Sécurité du partie back JWT ++
 	- Dockerizer partie back et front ++
 	- Automatiser le projet: CICD
-	- Ajouter d'autres tables (avec des relations entre les tables) et d'autre fonctionnalité back et front
-	- Mettre le projet sous git
+	- Ajouter d'autres tables (avec des relations entre les tables) et d'autre fonctionnalité back et front ++
+	- Mettre le projet sous git ++
+	- Ajouter la fonctionnalité resetPassword (back et front)
 
 
 Les liens à tester:
@@ -120,7 +121,7 @@ A- Utiliser dockerFile avec les commande pour créer et démarrer application
 	- on a générer un fichier .jar de notre module, avec mvn clean package -DskipTests (clean pour clener le fichier target): le fichier .jar on va l'utiliser dans le Dockerfile
 		COPY target/*.jar app.jar  --> cette ligne pour copier les fichiers .jar sous target dans un fichier app.jar qu'on va exécuter après
                 ENTRYPOINT ["java", "-jar", "app.jar"]  -> cette ligne dans Dockerfile, pour dire à docker d'exécuter le fichier .jar (cad démarrer notre appli)
-	- création de l'image avec docker build . -t enset-demo-spring-angulr:v1    (v1 c'est le tag, cad la version), après si je lance docker images, alors je trouve la nouevlle image
+	- création de l'image avec docker build . -t enset-demo-spring-angular:v1    (v1 c'est le tag, cad la version), après si je lance docker images, alors je trouve la nouevlle image
 	- créer un conteneur de cette image avec: docker run -p 8021:8021 enset-demo-spring-angulr:v1  (il faut mapper les port car le 8761 est le port en local de module et le 2éme 8021          
           c'est notre choix, pour qu'on arrive à accéder au application à partir de l'exterieur). --> l'application est démarrer et pour le tester:
           http://192.168.76.3:8021, ou bien on peut taper dans la VM: localhost:8761  (car docker Engine est sur cette VM)
@@ -143,4 +144,18 @@ Remarque: J'aurais la même erreur que l'autre projet, alors pour débloquer la 
 	- Pour la partie Back, j'ai utiliser docker-compose: docker compose up -d --build
 	- Après je peux lancer l'application avec :  http://192.168.76.3:4200
 
+Remarque GIT:
+	- Pour la partie front: forigin
+	- Pour la partie back: jorigin
+	==> Pour aie la commit, par exemple pour la partie front: faire commit avec iteleji des fichiers, après click sur GIT (en haut) et cocher la partie front et faire push
 
+
+Test unitaire:
+
+
+ResetPassword:
+ mail: testhasni.bh@gmail.com, 22248493bh, TestHasni
+- Pour envoyer des mail, on besoin de 
+	- service a developper (voir code)
+	- config a mettre en place: pour récupérer le mdp voir des videos qui permet permet de montrer comment chercher des mdp pour l'application    
+          (https://www.youtube.com/watch?v=OdQ3GyBsdAA)

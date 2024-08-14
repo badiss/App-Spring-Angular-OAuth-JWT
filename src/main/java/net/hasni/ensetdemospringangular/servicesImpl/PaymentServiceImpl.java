@@ -95,6 +95,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     public void deletePayment(Long PaymentId){
+        Payment payment = paymentRepository.findById(PaymentId).get();
+        if (payment.getId() == null) throw new RuntimeException();
         paymentRepository.deleteById(PaymentId);
     }
 }

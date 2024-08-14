@@ -2,6 +2,7 @@ package net.hasni.ensetdemospringangular.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.minidev.json.annotate.JsonIgnore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,5 +28,6 @@ public class Cours {
              joinColumns = @JoinColumn( name = "id_cours" ),
              inverseJoinColumns = @JoinColumn( name = "student_id" ) )*/
     @ManyToMany(mappedBy = "cours" ,fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Student> students = new ArrayList<>();
 }

@@ -1,5 +1,6 @@
 package net.hasni.ensetdemospringangular.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +31,7 @@ public class Student {
             joinColumns = @JoinColumn( name = "student_id" ),
             inverseJoinColumns = @JoinColumn( name = "id_cours" ) )
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonManagedReference
     private List<Cours> cours = new ArrayList<>();
 
 }
