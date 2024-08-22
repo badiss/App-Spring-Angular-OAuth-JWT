@@ -5,14 +5,17 @@ Spring Angular - Backend with Spring Boot
 A faire sur le projet:
 	- Developpement partie back ++
 	- Developpement partie Front ++
-	- test unitaire
+	- test unitaire ++
 	- Sécurité du partie back JWT ++
 	- Sécurité du partie back JWT ++
 	- Dockerizer partie back et front ++
 	- Automatiser le projet: CICD
 	- Ajouter d'autres tables (avec des relations entre les tables) et d'autre fonctionnalité back et front ++
 	- Mettre le projet sous git ++
-	- Ajouter la fonctionnalité resetPassword (back et front)
+	- Ajouter la fonctionnalité resetPassword (back et front) ++
+	- Graphana (voir video Youssfi)
+	- Exception (on utilisant restControlleur et HandlerException) partie back
+	- Gérer les exception partie Front
 
 
 Les liens à tester:
@@ -150,7 +153,7 @@ Remarque GIT:
 	==> Pour aie la commit, par exemple pour la partie front: faire commit avec iteleji des fichiers, après click sur GIT (en haut) et cocher la partie front et faire push
 
 
-Test unitaire:
+Test unitaire: voir code
 
 
 ResetPassword:
@@ -159,3 +162,11 @@ ResetPassword:
 	- service a developper (voir code)
 	- config a mettre en place: pour récupérer le mdp voir des videos qui permet permet de montrer comment chercher des mdp pour l'application    
           (https://www.youtube.com/watch?v=OdQ3GyBsdAA)
+
+
+Exception: Dans le package Exception:
+	- Objet ApiException: contient les varibales de réponse des apis (voir dans navigateur en cas d'erreur)
+	- ApiRequestException: hérite de RuntimeException et contient un param message
+	- ControllerExceptionHandler: controlleur des exceptions, annoté par @controlleurAdvice, e on @ExceptionHandler(value = {ApiRequestException.class})
+	  au dessus de chaque méthode:
+		- J'ai créer deux méthodes: une pour BAD_REQUEST et l'autre pour NOT_FOUND

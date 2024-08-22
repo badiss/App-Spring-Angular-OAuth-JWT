@@ -1,5 +1,8 @@
 package net.hasni.ensetdemospringangular.web;
 
+import net.hasni.ensetdemospringangular.Exception.ApiMethodeArgNotValidException;
+import net.hasni.ensetdemospringangular.Exception.ApiNotFoundException;
+import net.hasni.ensetdemospringangular.Exception.ApiRequestException;
 import net.hasni.ensetdemospringangular.dto.AffectationStudentCoursDTO;
 import net.hasni.ensetdemospringangular.dto.CoursDTO;
 import net.hasni.ensetdemospringangular.dto.PaymentDTO;
@@ -7,7 +10,6 @@ import net.hasni.ensetdemospringangular.dto.ResetPasswordDTO;
 import net.hasni.ensetdemospringangular.entities.*;
 import net.hasni.ensetdemospringangular.enums.PaymentStatus;
 import net.hasni.ensetdemospringangular.enums.PaymentType;
-import net.hasni.ensetdemospringangular.repository.PaymentRepository;
 import net.hasni.ensetdemospringangular.servicesImpl.*;
 import net.hasni.ensetdemospringangular.util.UserCode;
 import org.springframework.http.MediaType;
@@ -25,7 +27,6 @@ import java.util.Map;
 @CrossOrigin("*")
 public class StudentPaymentRestController {
 
-    private PaymentRepository paymentRepository;
     private StudentServiceImpl studentService;
     private PaymentServiceImpl paymentService;
     private LoginServiceImpl loginService;
@@ -33,11 +34,10 @@ public class StudentPaymentRestController {
     private UserServiceImpl userService;
     private EmailServiceImpl emailService;
 
-    public StudentPaymentRestController(PaymentRepository paymentRepository, StudentServiceImpl studentService,
+    public StudentPaymentRestController(StudentServiceImpl studentService,
                                         PaymentServiceImpl paymentService, LoginServiceImpl loginService,
                                         CoursServiceImpl coursService, UserServiceImpl userService,
                                         EmailServiceImpl emailService) {
-        this.paymentRepository = paymentRepository;
         this.studentService = studentService;
         this.paymentService = paymentService;
         this.loginService = loginService;
@@ -53,8 +53,12 @@ public class StudentPaymentRestController {
      */
     @GetMapping(path="/listPayment")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public List<Payment> listPayment() {
-        return paymentRepository.findAll();
+    public List<Payment> listPayment() throws ApiNotFoundException {
+        List<Payment> list = paymentService.listPayments();
+        if (list.isEmpty()) {
+            throw new ApiNotFoundException("Liste des payments est vide, pas de payments pour l'instant");
+        }
+        return list;
     }
 
     /**
@@ -63,18 +67,38 @@ public class StudentPaymentRestController {
      */
     @GetMapping(path="/students/{code}/payments")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public List<Payment> getPaymentsByStudent(@PathVariable String code) {
-        return paymentRepository.findByStudentCode(code);
+    public List<Payment> getPaymentsByStudent(@PathVariable String code) throws ApiNotFoundException  {
+        List<Payment> list = paymentService.getPaymentsByStudent(code);
+        if (list.isEmpty()) {
+            throw new ApiNotFoundException("Liste des payments avec le code "+code+" est vide, pas des payments pour l'instant");
+        }
+        return list;
     }
 
     /**
      * Consulter liste des payments par statut.
      * @return
      */
-    @GetMapping(path="/paymentSatus")
+    @GetMapping(path="/paymentStatus")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public List<Payment> getPaymentsByStatus(@RequestParam PaymentStatus status) {
-        return paymentRepository.findByStatus(status);
+    public List<Payment> getPaymentsByStatus(@RequestParam String status) throws ApiNotFoundException, ApiMethodeArgNotValidException{
+        PaymentStatus result = null;
+        for (PaymentStatus st : PaymentStatus.values()) {
+            if (st.name().equalsIgnoreCase(status)) {
+                result = st;
+                break;
+            }
+        }
+
+        if (result == null) {
+            throw new ApiMethodeArgNotValidException("Vérifier la valeur de ton argument status, il n'existe pas dans l'enum: "+status);
+        }
+
+        List<Payment> list = paymentService.getPaymentsByStatus(result);
+        if (list.isEmpty()) {
+            throw new ApiNotFoundException("Liste des payments avec le status "+status+" est vide, pas des payments pour l'instant");
+        }
+        return list;
     }
 
     /**
@@ -83,8 +107,22 @@ public class StudentPaymentRestController {
      */
     @GetMapping(path="/paymentType")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public List<Payment> getPaymentsByStatus(@RequestParam PaymentType type) {
-        return paymentRepository.findByType(type);
+    public List<Payment> getPaymentsByType(@RequestParam String type) throws ApiMethodeArgNotValidException, ApiNotFoundException {
+        PaymentType result = null;
+        for (PaymentType ty : PaymentType.values()) {
+            if (ty.name().equalsIgnoreCase(type)) {
+                result = ty;
+                break;
+            }
+        }
+        if (result == null) {
+            throw new ApiMethodeArgNotValidException("Vérifier la valeur de ton argument type, il n'existe pas dans l'enum: "+type);
+        }
+        List<Payment> list = paymentService.getPaymentsByType(result);
+        if (list.isEmpty()) {
+            throw new ApiNotFoundException("Liste des payments avec le type "+type+" est vide, pas des payments pour l'instant");
+        }
+        return list;
     }
 
     /**
@@ -105,7 +143,7 @@ public class StudentPaymentRestController {
     @GetMapping(path="/payment/{id}")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public Payment getPaymentByID (@PathVariable Long id) {
-        return paymentRepository.findById(id).get();
+        return paymentService.getPaymentByID(id);
     }
 
     /**
@@ -151,10 +189,15 @@ public class StudentPaymentRestController {
         return paymentService.savePayment(file, paymentDTO);
     }
 
-    @PutMapping(path ="/updatePayment/{id}")
+    @PutMapping(path ="/updatePayment/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE })
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public Payment updatePayment(@RequestBody PaymentDTO paymentDTO, @PathVariable Long id) throws IOException {
-        return paymentService.updatePayment(paymentDTO, id);
+    public Payment updatePayment(@RequestBody PaymentDTO paymentDTO, @PathVariable Long id) throws ApiRequestException {
+        try {
+            return paymentService.updatePayment(paymentDTO, id);
+        }catch (ApiRequestException e) {
+            throw new ApiRequestException("La modification du payment est failed", e.getCause());
+        }
+
     }
 
     /**
@@ -166,7 +209,7 @@ public class StudentPaymentRestController {
     @GetMapping(path ="/paymentFile/{paymentId}", produces = { MediaType.APPLICATION_PDF_VALUE })
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public byte[] getFilePayment (@PathVariable Long paymentId) throws IOException {
-       return paymentService.getFilePayment(paymentId);
+        return paymentService.getFilePayment(paymentId);
     }
 
     @DeleteMapping("/deletePayment/{id}")

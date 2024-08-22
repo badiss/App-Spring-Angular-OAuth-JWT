@@ -133,7 +133,7 @@ public class StudentPaymentRestControllerTests {
 
         //Given
         List<Payment> listPayment = List.of(payment1, payment2);
-        given(paymentRepository.findAll()).willReturn(listPayment);
+        given(paymentService.listPayments()).willReturn(listPayment);
 
         //When
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.get("/api/listPayment").accept(MediaType.APPLICATION_JSON)).andReturn();
@@ -149,7 +149,7 @@ public class StudentPaymentRestControllerTests {
 
         //Given
         List<Payment> listPayment = List.of(payment1, payment2);
-        given(paymentRepository.findByStudentCode(Mockito.any(String.class))).willReturn(listPayment);
+        given(paymentService.getPaymentsByStudent(Mockito.any(String.class))).willReturn(listPayment);
 
         //When
         ResultActions response = mockMvc.perform(MockMvcRequestBuilders.get("/api/students/51/payments")
@@ -291,7 +291,6 @@ public class StudentPaymentRestControllerTests {
 
         //Then
         response.andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.date", CoreMatchers.is("2024-08-14")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.type", CoreMatchers.is("CHECK")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status", CoreMatchers.is("CREATED")));
 

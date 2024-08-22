@@ -1,5 +1,6 @@
 package net.hasni.ensetdemospringangular.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;

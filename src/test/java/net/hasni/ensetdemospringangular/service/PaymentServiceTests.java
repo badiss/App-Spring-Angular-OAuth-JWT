@@ -141,6 +141,13 @@ public class PaymentServiceTests {
     @Test
     public void UpdatePayment_ReturnPayment() throws IOException {
         // Given
+        Student st = Student.builder()
+                .firstName("Hasni")
+                .lastName("Badis")
+                .code("51")
+                .programId("EEEE")
+                .build();
+
         Payment payment = Payment.builder()
                 .id(2L)
                 .amount(1000+(int)(Math.random()*2000))
@@ -157,7 +164,7 @@ public class PaymentServiceTests {
                 .studentCode("51")
                 .build();
 
-        Mockito.when(studentRepository.findByCode(Mockito.any(String.class))).thenReturn(student);
+        Mockito.when(studentRepository.findByCode(Mockito.any(String.class))).thenReturn(st);
         Mockito.when(paymentRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.ofNullable(payment));
         Mockito.when(paymentRepository.save(Mockito.any(Payment.class))).thenReturn(payment);
 

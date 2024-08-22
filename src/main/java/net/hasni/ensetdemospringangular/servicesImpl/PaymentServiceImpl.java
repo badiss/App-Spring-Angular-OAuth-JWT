@@ -1,10 +1,12 @@
 package net.hasni.ensetdemospringangular.servicesImpl;
 
 import jakarta.transaction.Transactional;
+import net.hasni.ensetdemospringangular.Exception.ApiNotFoundException;
 import net.hasni.ensetdemospringangular.dto.PaymentDTO;
 import net.hasni.ensetdemospringangular.entities.Payment;
 import net.hasni.ensetdemospringangular.entities.Student;
 import net.hasni.ensetdemospringangular.enums.PaymentStatus;
+import net.hasni.ensetdemospringangular.enums.PaymentType;
 import net.hasni.ensetdemospringangular.repository.PaymentRepository;
 import net.hasni.ensetdemospringangular.repository.StudentRepository;
 import net.hasni.ensetdemospringangular.services.PaymentService;
@@ -16,6 +18,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -71,13 +75,16 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
 
-    public Payment updatePayment(PaymentDTO paymentDTO, Long id) throws IOException {
+    public Payment updatePayment(PaymentDTO paymentDTO, Long id) throws ApiNotFoundException {
 
-        Payment payment = paymentRepository.findById(id).orElse(null);
-        if (payment == null) throw new RuntimeException();
+        Payment payment = paymentRepository.findById(id).orElseThrow(() -> new ApiNotFoundException("Pas de payment avec cet id"));
 
         //chercher le student par son code.
         Student student = studentRepository.findByCode(paymentDTO.getStudentCode());
+
+        if (student == null) {
+            throw new ApiNotFoundException("Il n'y a pas un étudient qui appartient à ce payment");
+        }
 
         payment.setStatus(paymentDTO.getStatus());
         payment.setType(paymentDTO.getType());
@@ -88,15 +95,41 @@ public class PaymentServiceImpl implements PaymentService {
 
     }
 
-    public byte[] getFilePayment (Long paymentId) throws IOException {
-        Payment payment = paymentRepository.findById(paymentId).get();
-        if (payment.getFile() == null) throw new RuntimeException();
+    public byte[] getFilePayment (Long paymentId) throws ApiNotFoundException, IOException {
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new ApiNotFoundException("Pas de payment avec cet id"));
+        if (payment.getFile() == null) {
+            throw new ApiNotFoundException("Ce payment ne contient pas un fichier");
+        }
         return Files.readAllBytes(Path.of(URI.create(payment.getFile())));
     }
 
     public void deletePayment(Long PaymentId){
-        Payment payment = paymentRepository.findById(PaymentId).get();
-        if (payment.getId() == null) throw new RuntimeException();
+        Payment payment = paymentRepository.findById(PaymentId).orElseThrow(() -> new ApiNotFoundException("Pas de payment avec cet id"));;
         paymentRepository.deleteById(PaymentId);
+    }
+
+    @Override
+    public List<Payment> listPayments() {
+        return paymentRepository.findAll();
+    }
+
+    @Override
+    public List<Payment> getPaymentsByStudent(String code) throws ApiNotFoundException {
+        return paymentRepository.findByStudentCode(code);
+    }
+
+    @Override
+    public List<Payment> getPaymentsByStatus(PaymentStatus status) {
+        return paymentRepository.findByStatus(status);
+    }
+
+    @Override
+    public List<Payment> getPaymentsByType(PaymentType type) {
+        return paymentRepository.findByType(type);
+    }
+
+    @Override
+    public Payment getPaymentByID(Long id) throws ApiNotFoundException {
+        return paymentRepository.findById(id).orElseThrow(() -> new ApiNotFoundException("Pas de payment avec cet id"));
     }
 }
