@@ -3,16 +3,16 @@ package net.hasni.ensetdemospringangular.web;
 import net.hasni.ensetdemospringangular.Exception.ApiMethodeArgNotValidException;
 import net.hasni.ensetdemospringangular.Exception.ApiNotFoundException;
 import net.hasni.ensetdemospringangular.Exception.ApiRequestException;
-import net.hasni.ensetdemospringangular.dto.AffectationStudentCoursDTO;
-import net.hasni.ensetdemospringangular.dto.CoursDTO;
-import net.hasni.ensetdemospringangular.dto.PaymentDTO;
-import net.hasni.ensetdemospringangular.dto.ResetPasswordDTO;
+import net.hasni.ensetdemospringangular.dto.*;
 import net.hasni.ensetdemospringangular.entities.*;
 import net.hasni.ensetdemospringangular.enums.PaymentStatus;
 import net.hasni.ensetdemospringangular.enums.PaymentType;
 import net.hasni.ensetdemospringangular.servicesImpl.*;
 import net.hasni.ensetdemospringangular.util.UserCode;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -33,17 +33,19 @@ public class StudentPaymentRestController {
     private CoursServiceImpl coursService;
     private UserServiceImpl userService;
     private EmailServiceImpl emailService;
+    private FactureServiceImpl factureService;
 
     public StudentPaymentRestController(StudentServiceImpl studentService,
                                         PaymentServiceImpl paymentService, LoginServiceImpl loginService,
                                         CoursServiceImpl coursService, UserServiceImpl userService,
-                                        EmailServiceImpl emailService) {
+                                        EmailServiceImpl emailService, FactureServiceImpl factureService) {
         this.studentService = studentService;
         this.paymentService = paymentService;
         this.loginService = loginService;
         this.coursService = coursService;
         this.userService = userService;
         this.emailService = emailService;
+        this.factureService = factureService;
 
     }
 
@@ -67,12 +69,12 @@ public class StudentPaymentRestController {
      */
     @GetMapping(path="/students/{code}/payments")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public List<Payment> getPaymentsByStudent(@PathVariable String code) throws ApiNotFoundException  {
+    public ResponseEntity<List<Payment>> getPaymentsByStudent(@PathVariable String code) throws ApiNotFoundException  {
         List<Payment> list = paymentService.getPaymentsByStudent(code);
         if (list.isEmpty()) {
             throw new ApiNotFoundException("Liste des payments avec le code "+code+" est vide, pas des payments pour l'instant");
         }
-        return list;
+        return new ResponseEntity<List<Payment>>(list, HttpStatus.OK);
     }
 
     /**
@@ -208,8 +210,13 @@ public class StudentPaymentRestController {
      */
     @GetMapping(path ="/paymentFile/{paymentId}", produces = { MediaType.APPLICATION_PDF_VALUE })
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public byte[] getFilePayment (@PathVariable Long paymentId) throws IOException {
-        return paymentService.getFilePayment(paymentId);
+    public byte[] getFilePayment (@PathVariable Long paymentId) throws IOException, ApiNotFoundException{
+        try {
+            return paymentService.getFilePayment(paymentId);
+        } catch (ApiNotFoundException exception) {
+            throw new ApiNotFoundException("Ce payment ne contient pas un fichier, cont");
+        }
+
     }
 
     @DeleteMapping("/deletePayment/{id}")
@@ -289,5 +296,47 @@ public class StudentPaymentRestController {
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public @ResponseBody Student affecterStudentCours (@RequestBody AffectationStudentCoursDTO affectationStudentCoursDTO) {
         return studentService.affectation(affectationStudentCoursDTO.getCoursIds(), affectationStudentCoursDTO.getStudentId());
+    }
+
+
+    /**
+     * Consulter liste des factures
+     * @return
+     */
+    @GetMapping(path="/listFacture")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public List<Facture> listFacture() throws ApiNotFoundException {
+        List<Facture> list = factureService.listFacture();
+        if (list.isEmpty()) {
+            throw new ApiNotFoundException("Liste des factures est vide, pas de facture pour l'instant");
+        }
+        return list;
+    }
+
+    /**
+     * Consulter liste des facture de chaque Payment.
+     * @return
+     */
+    @GetMapping(path="/facturesPayment/{PaymentId}")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public ResponseEntity<List<Facture>> getFacturesByPayment(@PathVariable Long PaymentId) throws ApiNotFoundException  {
+        List<Facture> list = factureService.getFacturesByPayment(PaymentId);
+        if (list.isEmpty()) {
+            throw new ApiNotFoundException("Liste des facture avec le payment "+PaymentId+" est vide, pas des factures pour l'instant");
+        }
+        return new ResponseEntity<List<Facture>>(list, HttpStatus.OK);
+    }
+
+    @PutMapping(path ="/updateFacture")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public void updateFacture (@RequestBody List<FactureDTO> listDTO) throws ApiRequestException {
+        try {
+            if (listDTO.isEmpty()) {
+                throw new ApiNotFoundException("La liste des facture est vide");
+            }
+            factureService.updateFactures(listDTO);
+        }catch (ApiRequestException e) {
+            throw new ApiRequestException("La modification des factures est failed", e.getCause());
+        }
     }
 }

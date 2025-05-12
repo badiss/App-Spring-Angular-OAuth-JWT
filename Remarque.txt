@@ -14,8 +14,10 @@ A faire sur le projet:
 	- Mettre le projet sous git ++
 	- Ajouter la fonctionnalité resetPassword (back et front) ++
 	- Graphana (voir video Youssfi)
-	- Exception (on utilisant restControlleur et HandlerException) partie back
-	- Gérer les exception partie Front
+	- Exception (on utilisant restControlleur et HandlerException) partie back ++
+	- Gérer les exceptions partie Front ++
+	- Ajouter internationalisation côté Front (avec Localise et les fichier xlf) ++
+	- Angular Signals (Mohamed yousfi)
 
 
 Les liens à tester:
@@ -164,9 +166,19 @@ ResetPassword:
           (https://www.youtube.com/watch?v=OdQ3GyBsdAA)
 
 
-Exception: Dans le package Exception:
+Exception côté back: Dans le package Exception:
 	- Objet ApiException: contient les varibales de réponse des apis (voir dans navigateur en cas d'erreur)
 	- ApiRequestException: hérite de RuntimeException et contient un param message
 	- ControllerExceptionHandler: controlleur des exceptions, annoté par @controlleurAdvice, e on @ExceptionHandler(value = {ApiRequestException.class})
 	  au dessus de chaque méthode:
 		- J'ai créer deux méthodes: une pour BAD_REQUEST et l'autre pour NOT_FOUND
+
+Exception côté Front: Il y a deux méthodes:
+	- Approche classique: traiter l'exception au moement de récupération de service dans le component
+	- Interceptor: Utilise l'interceptor pour gérer les exceptions (voir entretient angular)
+
+
+Internationnalisation avec i18n et les fichier xlf: description dans le fichier entretien
+	- angular.json : mettre en place la configuration nécessaire
+	- main.ts: code en commentaire pour rendre internationnalisation dynamique (sa marche pas)
+	- admin-Template.component: j'ai ajouté dans le nav les langue et une méthode changeLang()

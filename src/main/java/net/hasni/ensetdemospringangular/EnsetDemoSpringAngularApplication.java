@@ -1,8 +1,10 @@
 package net.hasni.ensetdemospringangular;
 
 import net.hasni.ensetdemospringangular.entities.*;
+import net.hasni.ensetdemospringangular.enums.FactureStatus;
 import net.hasni.ensetdemospringangular.enums.PaymentStatus;
 import net.hasni.ensetdemospringangular.enums.PaymentType;
+import net.hasni.ensetdemospringangular.enums.TrimestreType;
 import net.hasni.ensetdemospringangular.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -26,7 +28,7 @@ public class EnsetDemoSpringAngularApplication {
 
 	@Bean
 	CommandLineRunner commandLineRunnerUser(JdbcUserDetailsManager jdbcUserDetailsManager, StudentRepository studentRepository, PaymentRepository paymentRepository,
-											StudentInformationsRepository studentInformationsRepository, CoursRepository coursRepository
+											StudentInformationsRepository studentInformationsRepository, CoursRepository coursRepository, FactureRepository factureRepository
 											) {
 
 		PasswordEncoder passwordEncoder = passwordEncoder1();
@@ -112,15 +114,14 @@ public class EnsetDemoSpringAngularApplication {
 			);
 			studentRepository.saveAll(studentList);
 
-
 			PaymentType[] paymentType = PaymentType.values();
 			Random random = new Random();
-			// Pour chaque étudient, on va ajouter 10 payment par exemple.
+			// Pour chaque étudient, on va ajouter 5 payment par exemple.
 			studentRepository.findAll().forEach(st -> {
-				for(int i =0; i<10; i++) {
+				for(int i =0; i<5; i++) {
 					int index = random.nextInt(paymentType.length);
 					Payment payment = Payment.builder()
-							.amount(1000+(int)(Math.random()*2000))
+							//.amount(1000+(int)(Math.random()*2000))
 							.type(paymentType[index])
 							.status(PaymentStatus.CREATED)
 							.date(LocalDate.now())
@@ -131,8 +132,23 @@ public class EnsetDemoSpringAngularApplication {
 				}
 			});
 
+			// Pour chaque payment, on va ajouter 3 facture par exemple.
+			TrimestreType[] trimestreType = TrimestreType.values();
+			paymentRepository.findAll().forEach(pay -> {
+				for(int i =0; i<3; i++) {
+					int index = random.nextInt(1000000);
+					Facture facture = Facture.builder()
+							.code(String.valueOf(index))
+							.trimestre(trimestreType[i])
+							.montant(1000+(int)(Math.random()*2000))
+							.status(FactureStatus.PENDING)
+							.payment(pay)
+							.build();
+					factureRepository.save(facture);
 
+				}
 
+			});
 
 		};
 	}
